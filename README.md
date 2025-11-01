@@ -45,6 +45,23 @@ To develop a **centralized digital platform** that automates inventory, procurem
 
 ---
 
+## 📘 Project Documentation
+
+All project-related documents, proposals, and tracking boards are organized in a dedicated documentation section.
+
+You can access the full documentation here:  
+<a href="docs/README.md" target="_blank">📂 Open Project Documents</a>
+
+### 🧾 Quick Access Links
+
+| Document | Description | Link |
+|-----------|--------------|------|
+| 📝 **Project Proposal** | Detailed overview of the system goals, scope, and approach. | <a href="https://docs.google.com/document/d/your-project-proposal-link-here" target="_blank">Open Proposal</a> |
+| ⚙️ **Sagile Board** | Agile sprint tracking and progress management dashboard. | <a href="https://app.sagile.io/your-project-board-link-here" target="_blank">View Sagile Board</a> |
+| 📄 **Software Requirements Specification (SRS)** | Detailed system requirements, modules, and features. | <a href="https://docs.google.com/document/d/your-srs-link-here" target="_blank">View SRS Document</a> |
+
+---
+
 ## 🧑‍🤝‍🧑 Project Team
 
 | Member Name | Role | Description |
@@ -109,3 +126,8 @@ firebase init
 
 # 5. Run the app (development)
 flutter run -d chrome
+
+---
+
+📅 **Last Updated:** November 2025  
+Maintained by **SIMS Development Team**  
