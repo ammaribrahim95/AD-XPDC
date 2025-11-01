@@ -8,7 +8,8 @@ Use the links below to access and collaborate on the latest project materials.
 ## 🧾 1. Project Proposal
 
 📄 **Google Docs Link:**  
-[👉 View Project Proposal](https://docs.google.com/document/d/19uJlhjBiuIAJlYO_JeQMenCaWmMWrQLXF4ZdNeF3zxg/edit?usp=sharing)
+<a href="https://docs.google.com/document/d/19uJlhjBiuIAJlYO_JeQMenCaWmMWrQLXF4ZdNeF3zxg/edit?usp=sharing" target="_blank">👉 View Project Proposal</a>
+
 
 **Description:**  
 This document outlines the project’s background, objectives, scope, problem statement, and proposed technical approach.  
@@ -19,7 +20,9 @@ It serves as the foundation for development and team alignment.
 ## ⚙️ 2. Sagile Board (Agile Project Tracking)
 
 📊 **Sagile Link:**  
-[👉 Access Sagile Board](https://sagile.dev/shared-project/store-inventory-management-system-CLsbf6EN)
+<a href="https://sagile.dev/shared-project/store-inventory-management-system-CLsbf6EN" target="_blank">👉 Access Sagile Board</a>
+
+
 
 **Description:**  
 Our **Sagile workspace** is used to manage agile sprints, assign tasks, and track project progress.  
