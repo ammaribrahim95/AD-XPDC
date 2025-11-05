@@ -7,8 +7,9 @@ Use the links below to access and collaborate on the latest project materials.
 
 ## 🧾 1. Project Proposal
 
-📄 **Google Docs Link:**  
-<a href="https://docs.google.com/document/d/19uJlhjBiuIAJlYO_JeQMenCaWmMWrQLXF4ZdNeF3zxg/edit?usp=sharing" target="_blank">👉 View Project Proposal</a>
+
+📝 **PDF Version:**  
+<a href="./Proposal SECJ3104 - Group XPDC.pdf" target="_blank">👉 Download Project Proposal (PDF)</a>
 
 
 **Description:**  
@@ -20,7 +21,7 @@ It serves as the foundation for development and team alignment.
 ## ⚙️ 2. Sagile Board (Agile Project Tracking)
 
 📊 **Sagile Link:**  
-<a href="https://sagile.dev/shared-project/store-inventory-management-system-CLsbf6EN" target="_blank">👉 Access Sagile Board</a>
+<a href="https://sagile.dev/shared-project/store-inventory-management-system-3wFzyT3q" target="_blank">👉 Access Sagile Board</a>
 
 
 

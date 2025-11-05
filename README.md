@@ -57,7 +57,7 @@ You can access the full documentation here:
 | Document | Description | Link |
 |-----------|--------------|------|
 | 📝 **Project Proposal** | Detailed overview of the system goals, scope, and approach. | <a href="https://docs.google.com/document/d/19uJlhjBiuIAJlYO_JeQMenCaWmMWrQLXF4ZdNeF3zxg/edit?usp=sharing" target="_blank">Open Proposal</a> |
-| ⚙️ **Sagile Board** | Agile sprint tracking and progress management dashboard. | <a href="https://sagile.dev/shared-project/store-inventory-management-system-CLsbf6EN" target="_blank">View Sagile Board</a> |
+| ⚙️ **Sagile Board** | Agile sprint tracking and progress management dashboard. | <a href="https://sagile.dev/shared-project/store-inventory-management-system-3wFzyT3q" target="_blank">View Sagile Board</a> |
 | 📄 **Software Requirements Specification (SRS)** | Detailed system requirements, modules, and features. | <a href="https://docs.google.com/document/d/your-srs-link-here" target="_blank">View SRS Document</a> |
 
 ---
