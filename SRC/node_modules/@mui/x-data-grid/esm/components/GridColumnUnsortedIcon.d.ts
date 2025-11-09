@@ -1,0 +1,7 @@
+import * as React from 'react';
+import { GridBaseIconProps } from "../models/gridSlotsComponentsProps.js";
+import { GridSortDirection } from "../models/gridSortModel.js";
+export interface GridColumnUnsortedIconProps extends GridBaseIconProps {
+  sortingOrder: GridSortDirection[];
+}
+export declare const GridColumnUnsortedIcon: React.NamedExoticComponent<GridColumnUnsortedIconProps>;
