@@ -10,6 +10,7 @@ const DashboardKPIs = () => {
           color: "white",
           p: 2,
           mb: 3,
+          display: "inline-block",
           borderRadius: 1,
         }}
       >
@@ -22,10 +23,19 @@ const DashboardKPIs = () => {
             color: "white",
           }}
         >
-          ENGINEERING STORES INVENTORY MANAGER
+          ENGINEERING STORE INVENTORY MANAGER - DASHBOARD
         </Typography>
       </Box>
-      <div>Dashboard KPIs (Stub)</div>
+      <Box
+        sx={{
+          backgroundColor: "grey.300",
+          p: 3,
+          borderRadius: 1,
+          minHeight: 400,
+        }}
+      >
+        {/* Dashboard content will go here */}
+      </Box>
     </Box>
   );
 };
