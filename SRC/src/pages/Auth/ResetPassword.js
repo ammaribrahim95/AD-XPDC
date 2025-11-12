@@ -8,15 +8,16 @@ import {
   CircularProgress,
 } from "@mui/material";
 import {
-  confirmPasswordReset,
   verifyPasswordResetCode,
+  confirmPasswordReset,
+  updatePassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import bcrypt from "bcryptjs";
 import { auth, db } from "../../firebase/config";
-import { useNavigate, useLocation } from "react-router-dom";
-import { doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
-import * as bcrypt from "bcryptjs";
-import { getUserDocByEmail } from "../../utils/userManagement";
+
+const PASSWORD_HISTORY_FIELDS = ["lastPasswords", "passwordHistory"];
 
 const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
@@ -25,142 +26,83 @@ const ResetPassword = () => {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Get the oobCode from URL parameters
-  const queryParams = new URLSearchParams(location.search);
-  const oobCode = queryParams.get("oobCode");
+  const [oobCode, setOobCode] = useState("");
 
   useEffect(() => {
-    const verifyCode = async () => {
-      if (!oobCode) {
-        setError("Invalid password reset link");
-        return;
-      }
-
-      try {
-        const email = await verifyPasswordResetCode(auth, oobCode);
-        setEmail(email);
-      } catch (error) {
-        setError("This password reset link is invalid or has expired.");
-      }
-    };
-
-    verifyCode();
-  }, [oobCode]);
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("oobCode");
+    setOobCode(code);
+    if (code) {
+      verifyPasswordResetCode(auth, code)
+        .then(setEmail)
+        .catch(() => setError("Invalid or expired password reset link."));
+    }
+  }, []);
 
   const validatePassword = (password) => {
-    const minLength = 8;
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-    if (password.length < minLength) {
-      return "Password must be at least 8 characters long";
-    }
-    if (!hasUpperCase) {
-      return "Password must contain at least one uppercase letter";
-    }
-    if (!hasLowerCase) {
-      return "Password must contain at least one lowercase letter";
-    }
-    if (!hasNumbers) {
-      return "Password must contain at least one number";
-    }
-    if (!hasSpecialChar) {
-      return "Password must contain at least one special character";
-    }
-
+    if (password.length < 8) return "Password must be at least 8 characters.";
+    if (!/[A-Z]/.test(password)) return "Must include an uppercase letter.";
+    if (!/[a-z]/.test(password)) return "Must include a lowercase letter.";
+    if (!/\d/.test(password)) return "Must include a number.";
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password))
+      return "Must include a special character.";
     return null;
   };
 
-  const handleResetPassword = async (e) => {
+  const handleReset = async (e) => {
     e.preventDefault();
-
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+    setError("");
+    setSuccess("");
+    if (!oobCode || !email) {
+      setError("Invalid password reset link.");
       return;
     }
-
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
     const passwordError = validatePassword(newPassword);
     if (passwordError) {
       setError(passwordError);
       return;
     }
-
-    setError("");
     setLoading(true);
-
     try {
-      // Try to verify current password is not being reused
-      try {
-        await signInWithEmailAndPassword(auth, email, newPassword);
-        // If login successful, it means the password is the same as current
-        setError("New password must be different from your current password");
+      await confirmPasswordReset(auth, oobCode, newPassword);
+      const usersRef = doc(db, "users", email);
+      const userDoc = await getDoc(usersRef);
+      let passwordHistory = [];
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        for (const field of PASSWORD_HISTORY_FIELDS) {
+          if (Array.isArray(data[field])) {
+            passwordHistory = data[field];
+            break;
+          }
+        }
+      }
+      // Compare new password with previous hashes
+      const reused = await Promise.all(
+        passwordHistory.map((hash) => bcrypt.compare(newPassword, hash))
+      );
+      if (reused.includes(true)) {
+        setError("You cannot reuse your previous password!");
         setLoading(false);
         return;
-      } catch (loginError) {
-        // Login failed, which is good - means password is different
       }
-
-      // Get user document from Firestore
-      const userDoc = await getUserDocByEmail(email);
-
-      if (userDoc) {
-        const userData = userDoc.data();
-        const passwordHistory = userData.passwordHistory || [];
-
-        // Check if new password matches any of the previous passwords
-        const isPasswordReused = await Promise.all(
-          passwordHistory.map(async (hashedPassword) => {
-            return await bcrypt.compare(newPassword, hashedPassword);
-          })
-        );
-
-        if (isPasswordReused.includes(true)) {
-          setError(
-            "Cannot reuse a previous password. Please choose a different password."
-          );
-          setLoading(false);
-          return;
-        }
-
-        // Hash the new password for storage
-        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-
-        // Complete the password reset
-        await confirmPasswordReset(auth, oobCode, newPassword);
-
-        // Update password history in Firestore
-        // Keep only the last 5 passwords in history
-        const updatedHistory = [...passwordHistory, hashedNewPassword].slice(
-          -5
-        );
-        await updateDoc(doc(db, "users", userDoc.id), {
-          passwordHistory: updatedHistory,
-          lastPasswordChange: new Date().toISOString(),
-        });
-
-        setSuccess("Password has been reset successfully!");
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
-      } else {
-        setError("User not found");
-      }
-    } catch (error) {
-      console.error("Reset password error:", error);
-      if (error.code === "auth/expired-action-code") {
-        setError(
-          "This password reset link has expired. Please request a new one."
-        );
-      } else if (error.code === "auth/weak-password") {
-        setError("Password is too weak. Please choose a stronger password.");
-      } else {
-        setError(error.message);
-      }
+      // Update password in Firebase Auth (user must be signed in)
+      await signInWithEmailAndPassword(auth, email, newPassword);
+      await updatePassword(auth.currentUser, newPassword);
+      // Hash new password and update Firestore
+      const newHash = await bcrypt.hash(newPassword, 10);
+      const updatedHistory = [...passwordHistory, newHash].slice(-5);
+      await updateDoc(usersRef, {
+        lastPasswords: updatedHistory,
+        lastUpdated: new Date().toISOString(),
+      });
+      setSuccess("Password reset successful! You may now log in.");
+    } catch (err) {
+      setError(err.message || "Password reset failed.");
     } finally {
       setLoading(false);
     }
@@ -168,7 +110,7 @@ const ResetPassword = () => {
 
   return (
     <Box
-      maxWidth={360}
+      maxWidth={400}
       mx="auto"
       my={8}
       p={4}
@@ -180,16 +122,9 @@ const ResetPassword = () => {
         Reset Password
       </Typography>
       <Typography variant="body2" mb={3} color="text.secondary">
-        Please enter your new password. The password must:
-        <ul>
-          <li>Be at least 8 characters long</li>
-          <li>Include at least one uppercase letter</li>
-          <li>Include at least one lowercase letter</li>
-          <li>Include at least one number</li>
-          <li>Include at least one special character</li>
-        </ul>
+        Enter a new password. You cannot reuse your previous password.
       </Typography>
-      <form onSubmit={handleResetPassword}>
+      <form onSubmit={handleReset}>
         <TextField
           label="New Password"
           type="password"
@@ -224,7 +159,7 @@ const ResetPassword = () => {
           color="primary"
           fullWidth
           sx={{ mt: 2 }}
-          disabled={loading || !oobCode}
+          disabled={loading}
         >
           {loading ? <CircularProgress size={24} /> : "Reset Password"}
         </Button>

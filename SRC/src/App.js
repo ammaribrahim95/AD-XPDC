@@ -22,10 +22,9 @@ import PartMaster from "./pages/Admin/PartMaster";
 import Login from "./pages/Auth/Login";
 import { Roles } from "./utils/roles";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth, db } from "./firebase/config";
+import { auth } from "./firebase/config";
 import { setUser, logout } from "./redux/authSlice";
-import { syncUserGroups, syncUserData } from "./utils/userManagement";
-import { doc, getDoc } from "firebase/firestore";
+import { syncUserGroups, syncUserData, getUserDocByUid } from "./utils/userManagement";
 import CircularProgress from "@mui/material/CircularProgress";
 import UserManagement from "./pages/Admin/UserManagement";
 import UserGroupMaster from "./pages/Admin/UserGroupMaster";
@@ -105,10 +104,17 @@ function AppShell() {
           // Sync user data whenever they log in
           await syncUserData(firebaseUser);
 
+          // Fetch user document to get groupId and other user data
+          const userDoc = await getUserDocByUid(firebaseUser.uid);
+          const userData = userDoc.exists() ? userDoc.data() : {};
+
           dispatch(
             setUser({
               email: firebaseUser.email,
               uid: firebaseUser.uid,
+              groupId: userData.groupId || null,
+              username: userData.username || null,
+              department: userData.department || null,
             })
           );
         } else {

@@ -65,12 +65,23 @@ const UserGroupMaster = () => {
   const [modal, setModal] = useState({ open: false, edit: false, data: defaultForm });
   const [snackbar, setSnackbar] = useState({ open: false, msg: '', severity: 'success' });
 
-  // Fetch userGroups from Firestore
+  // Fetch groups from Firestore 'groups' collection
   const fetchGroups = async () => {
     setLoading(true);
     try {
-      const querySnapshot = await getDocs(collection(db, 'userGroups'));
-      setGroups(querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+      const querySnapshot = await getDocs(collection(db, 'groups'));
+      const groupsData = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id,
+          groupId: data.groupId || doc.id,
+          groupName: data.name || data.groupName || doc.id || '',
+          description: data.description || '',
+          department: data.department || '',
+        };
+      });
+      setGroups(groupsData);
     } catch (err) {
       setSnackbar({ open: true, msg: 'Failed to fetch groups', severity: 'error' });
     } finally {
@@ -80,7 +91,16 @@ const UserGroupMaster = () => {
   useEffect(() => { fetchGroups(); }, []);
 
   const openAdd = () => setModal({ open: true, edit: false, data: defaultForm });
-  const openEdit = (row) => setModal({ open: true, edit: true, data: row });
+  const openEdit = (row) => {
+    setModal({ 
+      open: true, 
+      edit: true, 
+      data: {
+        ...row,
+        groupName: row.groupName || row.name || row.groupId,
+      }
+    });
+  };
   const closeModal = () => setModal({ open: false, edit: false, data: defaultForm });
 
   const handleSave = async () => {
@@ -88,23 +108,40 @@ const UserGroupMaster = () => {
     if (!groupId || !groupName) return setSnackbar({ open: true, msg: 'Group ID and Name required!', severity: 'error' });
     try {
       if (modal.edit) {
-        await setDoc(doc(db, 'userGroups', id), { groupId, groupName, description, department });
+        // Use groupId as document ID for consistency
+        await setDoc(doc(db, 'groups', id), { 
+          groupId, 
+          name: groupName,
+          groupName,
+          description, 
+          department,
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
         setSnackbar({ open: true, msg: 'Group updated.', severity: 'success' });
       } else {
-        await addDoc(collection(db, 'userGroups'), { groupId, groupName, description, department });
+        // Use groupId as document ID
+        await setDoc(doc(db, 'groups', groupId), { 
+          groupId, 
+          name: groupName,
+          groupName,
+          description, 
+          department,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
         setSnackbar({ open: true, msg: 'Group added.', severity: 'success' });
       }
       closeModal();
       fetchGroups();
     } catch (err) {
-      setSnackbar({ open: true, msg: 'Save failed', severity: 'error' });
+      setSnackbar({ open: true, msg: 'Save failed: ' + err.message, severity: 'error' });
     }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete group?')) return;
     try {
-      await deleteDoc(doc(db, 'userGroups', id));
+      await deleteDoc(doc(db, 'groups', id));
       setGroups(groups => groups.filter(g => g.id !== id));
       setSnackbar({ open: true, msg: 'Group deleted.', severity: 'success' });
     } catch {
@@ -143,7 +180,13 @@ const UserGroupMaster = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <DataGrid rows={groups} columns={columns} autoHeight pageSize={8} disableSelectionOnClick />
+          <DataGrid 
+            rows={groups || []} 
+            columns={columns} 
+            autoHeight 
+            pageSize={8} 
+            disableSelectionOnClick 
+          />
         )}
       </div>
       {/* Add/Edit Modal */}
